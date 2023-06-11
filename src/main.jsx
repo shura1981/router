@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import 'bootstrap/dist/css/bootstrap.css';
 import './index.css'
@@ -7,6 +7,12 @@ import { Button, Dropdown, Tooltip, Toast, Popover } from 'bootstrap'
 import { BrowserRouter, Routes, Route, Navigate, Link, Outlet, useSearchParams, useLocation } from 'react-router-dom';
 import { useNavigate, useParams } from "react-router";
 import * as user from './users';
+
+import Profile from './components/Profile';
+import UserList from './components/UserList';
+import UsersState from './context/User/UserState';
+
+
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <BrowserRouter>
@@ -48,7 +54,7 @@ function App() {
 
 function User() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const {search}= useLocation();
+  const { search } = useLocation();
   const filter = searchParams.get("filter") ?? '';
   const handleFilter = (e) => {
     setSearchParams({ filter: e.target.value });
@@ -59,7 +65,7 @@ function User() {
     return name.includes(filter.toLowerCase());
   }
 
- 
+
   const listFiltered = user.getAllUsers().filter(handleListFilter)
   return (
     <>
@@ -75,7 +81,7 @@ function User() {
                 listFiltered.length > 0 ?
                   listFiltered.map(usuario => {
                     return <li key={usuario.id} className="list-group-item">
-                      <Link to={usuario.id.toString()+search}> {usuario.name}</Link>
+                      <Link to={usuario.id.toString() + search}> {usuario.name}</Link>
                     </li>
                   }) : <li className="list-group-item">
                     <Link > "Sin resultados en la búsqueda"</Link>
@@ -99,10 +105,10 @@ function User() {
 function InfoUser() {
   const { userId } = useParams();
   const navigate = useNavigate();
-  const userFinder= user.getUser(+userId);
-if(!userFinder){
-  return <div> No encontrado</div>
-}
+  const userFinder = user.getUser(+userId);
+  if (!userFinder) {
+    return <div> No encontrado</div>
+  }
 
   const { id, name, username, email, phone, website } = userFinder;
   const listImage = document.querySelectorAll(".info-user img");
@@ -117,13 +123,13 @@ if(!userFinder){
     e.target.nextSibling.classList.add("hide");
     e.target.classList.add("show-in");
   }
-const handleErrorLoad = e =>{
-e.target.setAttribute("src", "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Image_not_available.png/640px-Image_not_available.png");
-}
-const handleDelted=()=>{
-  user.deleteUser(id);
-  navigate("/users");
-}
+  const handleErrorLoad = e => {
+    e.target.setAttribute("src", "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Image_not_available.png/640px-Image_not_available.png");
+  }
+  const handleDelted = () => {
+    user.deleteUser(id);
+    navigate("/users");
+  }
   return (
     <>
       <div className="container my-5 info-user">
@@ -132,7 +138,7 @@ const handleDelted=()=>{
             <h1 className='text-center'>Usario {userId} </h1>
             <div className="card" style={{ width: "18rem" }}>
               <div className="ratio ratio-16x9">
-                <img style={{ backgroundColor: "#adb5bd" }}  onError={handleErrorLoad} onLoad={handleLoad} src={`https://picsum.photos/500/300?image=${id}`} className="card-img-top" alt={username} />
+                <img style={{ backgroundColor: "#adb5bd" }} onError={handleErrorLoad} onLoad={handleLoad} src={`https://picsum.photos/500/300?image=${id}`} className="card-img-top" alt={username} />
                 <div className="absolute loader-container">
                   <div className="spinner-border text-primary" role="status">
                     <span className="visually-hidden">Loading...</span>
@@ -157,8 +163,18 @@ function Blog() {
     <>
       <div className="container my-5">
         <div className="row justify-content-center">
-          <div className="col-12 col-md-6">
+          <div className="col-12">
             <h1 className='text-center'>Blog</h1>
+            <UsersState>
+              <div className="row">
+                <div className="col-12 col-md-6">
+                <UserList />
+                </div>
+                <div className="col-12 col-md-6">
+                    <Profile />
+                </div>
+              </div>
+            </UsersState>
           </div>
         </div>
       </div>
@@ -181,6 +197,29 @@ function NoFound() {
 }
 
 function Layout() {
+
+
+
+  useEffect(() => {
+    const ANCHURA_MAXIMA = 812;
+    const handleCloseButton = () => {
+      //obtener anchura de la pantalla
+      const widthScreen = window.innerWidth;
+      console.log(widthScreen);
+      if (widthScreen < ANCHURA_MAXIMA) {
+        if (buttonMenu.classList.contains("collapsed")) return;
+        buttonMenu.click();
+      }
+      //detectar si hay cambios en la anchura de la pantalla
+      window.addEventListener("resize", handleCloseButton);
+
+
+    }
+    const buttonMenu = document.querySelector(".navbar-toggler");
+    const links = document.querySelectorAll(".toogle-menu");
+    links.forEach(b => b.addEventListener("click", handleCloseButton));
+  }, []);
+
   return <>
     <main>
       <nav className="navbar navbar-expand-lg bg-body-tertiary">
@@ -192,24 +231,24 @@ function Layout() {
           <div className="collapse navbar-collapse" id="navbarSupportedContent">
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
               <li className="nav-item">
-                <Link to="/users" className="nav-link active" aria-current="page" >Usuarios</Link>
+                <Link to="/users" className="nav-link toogle-menu" aria-current="page" >Usuarios</Link>
               </li>
               <li className="nav-item">
-                <Link className="nav-link" >Link</Link>
+                <Link className="nav-link toogle-menu" >Link</Link>
               </li>
               <li className="nav-item dropdown">
                 <Link className="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                   Dropdown
                 </Link>
                 <ul className="dropdown-menu">
-                  <li><Link to="blog" className="dropdown-item" >Blog</Link></li>
-                  <li><Link className="dropdown-item" >Another action</Link></li>
+                  <li><Link to="blog" className="dropdown-item toogle-menu" >Blog</Link></li>
+                  <li><Link className="dropdown-item toogle-menu" >Another action</Link></li>
                   <li className="dropdown-divider"></li>
-                  <li><Link className="dropdown-item" >Something else here</Link></li>
+                  <li><Link className="dropdown-item toogle-menu" >Something else here</Link></li>
                 </ul>
               </li>
               <li className="nav-item">
-                <a className="nav-link disabled">Disabled</a>
+                <a className="nav-link disabled toogle-menu">Disabled</a>
               </li>
             </ul>
 
