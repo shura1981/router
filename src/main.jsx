@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom/client'
 import 'bootstrap/dist/css/bootstrap.css';
 import './index.css'
@@ -11,7 +11,7 @@ import * as user from './users';
 import Profile from './components/Profile';
 import UserList from './components/UserList';
 import UsersState from './context/User/UserState';
-
+import Form from './components/Form';
 
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -23,6 +23,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path=":userId" element={<InfoUser />} />
         </Route>
         <Route path='blog' element={<Blog />} />
+        <Route path='contact' element={<Contact />} />
+        <Route path='tareas' element={<Tareas />} />
       </Route>
       {/* <Route path='*'  element={<NoFound/>} /> */}
       <Route path='*' element={<Navigate to="/" replace />} />
@@ -168,10 +170,10 @@ function Blog() {
             <UsersState>
               <div className="row">
                 <div className="col-12 col-md-6">
-                <UserList />
+                  <UserList />
                 </div>
                 <div className="col-12 col-md-6">
-                    <Profile />
+                  <Profile />
                 </div>
               </div>
             </UsersState>
@@ -238,17 +240,17 @@ function Layout() {
               </li>
               <li className="nav-item dropdown">
                 <Link className="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  Dropdown
+                  Opciones
                 </Link>
                 <ul className="dropdown-menu">
                   <li><Link to="blog" className="dropdown-item toogle-menu" >Blog</Link></li>
-                  <li><Link className="dropdown-item toogle-menu" >Another action</Link></li>
+                  <li><Link to="contact" className="dropdown-item toogle-menu" >Contacto</Link></li>
                   <li className="dropdown-divider"></li>
-                  <li><Link className="dropdown-item toogle-menu" >Something else here</Link></li>
+                  <li><Link to="tareas" className="dropdown-item toogle-menu" >Lista de tareas</Link></li>
                 </ul>
               </li>
               <li className="nav-item">
-                <a className="nav-link disabled toogle-menu">Disabled</a>
+                <a className="nav-link disabled toogle-menu">Salir</a>
               </li>
             </ul>
 
@@ -263,4 +265,153 @@ function Layout() {
     </main>
 
   </>
+}
+
+//crear componente de lista de tareas 
+function Tareas() {
+  const [tareas, setTareas] = useState([]);
+  const [tarea, setTarea] = useState("");
+  const [error, setError] = useState(null);
+  const [modoEdicion, setModoEdicion] = useState(false);
+  const [id, setId] = useState("");
+  const [success, setSuccess] = useState(null);
+
+  useEffect(() => {
+    const tareasLocalStorage = JSON.parse(localStorage.getItem("tareas"));
+    if (!tareasLocalStorage) return;
+    setTareas(tareasLocalStorage);
+    console.log("primer usefect");
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("tareas", JSON.stringify(tareas));
+    console.log("segundo usefect");
+  }, [tareas]);
+
+  const handleAddTarea = (e) => {
+    e.preventDefault();
+    if (!tarea.trim()) {
+      setError("Escriba algo por favor");
+      return;
+    }
+    const id_task= tareas.length === 0 ? 1 : tareas[tareas.length - 1].id + 1;
+    console.log(id_task);
+
+    setTareas([...tareas, { id: id_task, nombreTarea: tarea }]);
+    setTarea("");
+    setError(null);
+    setSuccess("Tarea agregada con exito");
+  };
+
+  const handleDeleteTarea = (id) => {
+    const arrayFiltrado = tareas.filter((item) => item.id !== id);
+    setTareas(arrayFiltrado);
+  };
+
+  const handleEditTarea = (item) => {
+    setModoEdicion(true);
+    setTarea(item.nombreTarea);
+    setId(item.id);
+  };
+
+  const handleUpdateTarea = (e) => {
+    e.preventDefault();
+    if (!tarea.trim()) {
+      setError("Escriba algo por favor");
+      return;
+    }
+    const arrayEditado = tareas.map((item) =>
+
+      item.id === id ? { id, nombreTarea: tarea } : item
+    );
+    setTareas(arrayEditado);
+    setModoEdicion(false);
+    setTarea("");
+    setId("");
+    setError(null);
+    setSuccess("Tarea actualizada con exito");
+  };
+
+  return (
+    <>
+      <div className="container my-5">
+        <div className="row justify-content-center">
+          <div className="col-12 col-md-6">
+            <h1 className='text-center'>Lista de tareas</h1>
+            <form
+              onSubmit={modoEdicion ? handleUpdateTarea : handleAddTarea}
+              className="form-group"
+            >
+              <input
+                type="text"
+                placeholder="Ingrese tarea"
+                className="form-control mb-2"
+                onChange={(e) => setTarea(e.target.value)}
+                value={tarea}
+              />
+              <input
+                type="submit"
+                value={modoEdicion ? "Editar tarea" : "Agregar tarea"}
+                className="btn btn-dark btn-block"
+              />
+            </form>
+            {error ? <div className="alert alert-danger">{error}</div> : null}
+            {success ? <div className="alert alert-success">{success}</div> : null}
+            <ul className="list-group">
+              {tareas.length === 0 ? (
+                <li className="list-group-item">No hay tareas</li>
+              ) : (
+                tareas.map((item) => (
+                  <li className="list-group-item" key={item.id}>
+                    <span className="lead">{item.nombreTarea}</span>
+                    <button
+                      className="btn btn-danger btn-sm float-end mx-2"
+                      onClick={() => handleDeleteTarea(item.id)}
+                    >
+                      Eliminar
+                    </button>
+                    <button
+                      className="btn btn-warning btn-sm float-end"
+                      onClick={() => handleEditTarea(item)}
+                    >
+                      Editar
+                    </button>
+                  </li>
+                ))
+              )}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+function Contact() {
+
+  return <>
+    <div className="container my-5">
+      <div className="row justify-content-center">
+        <div className="col-12 col-md-6">
+          <h1 className='text-center'>Contacto</h1>
+          <Form />
+        </div>
+      </div>
+    </div>
+  </>
+
+
 }

@@ -1,3 +1,4 @@
+import Swal from 'sweetalert2'
 function isJsonString(str) {
     try {
         JSON.parse(str);
@@ -29,5 +30,43 @@ export const Http = ({ url, method = 'GET', data = null, headers = null }) => {
         ).catch(err => {
             reject(JSON.parse(err.message));
         })
+    })
+}
+
+export function showErrorFetch(text) {
+    Swal.fire({
+        icon: 'error',
+        title: 'Oops... Ocurrió un error',
+        text: text,
+        footer: '<a href="#">Por favor revisa el formulario</a>'
+    })
+}
+
+let s = null;
+export function toogleLoading() {
+    if (s) {
+        s.close();
+        s = null;
+    }
+    else {
+        s = Swal.fire({
+            title: '¡Ya casi está listo!',
+            html: 'Enviando datos',
+            // timer: 2000,
+            backdrop: false,
+            timerProgressBar: true,
+            didOpen: () => {
+                Swal.showLoading()
+            }
+        });
+    }
+}
+
+export function showSuccess(title) {
+    Swal.fire({
+        icon: 'success',
+        title: title,
+        showConfirmButton: false,
+        timer: 1500
     })
 }
