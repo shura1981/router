@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useContext } from 'react'
 import ReactDOM from 'react-dom/client'
 import 'bootstrap/dist/css/bootstrap.css';
 import './index.css'
@@ -12,7 +12,7 @@ import Profile from './components/Profile';
 import UserList from './components/UserList';
 import UsersState from './context/User/UserState';
 import Form from './components/Form';
-
+import { TaskContext, TaskState } from './context/Task/TaskContext';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <BrowserRouter>
@@ -24,7 +24,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         </Route>
         <Route path='blog' element={<Blog />} />
         <Route path='contact' element={<Contact />} />
-        <Route path='tareas' element={<Tareas />} />
+        <Route path='tareas' element={< ContainerTask />} />
       </Route>
       {/* <Route path='*'  element={<NoFound/>} /> */}
       <Route path='*' element={<Navigate to="/" replace />} />
@@ -267,95 +267,11 @@ function Layout() {
   </>
 }
 
-//crear componente de lista de tareas 
-function Tareas() {
-  const [tareas, setTareas] = useState([]);
-  const [tarea, setTarea] = useState("");
-  const [error, setError] = useState(null);
-  const [modoEdicion, setModoEdicion] = useState(false);
-  const [id, setId] = useState("");
-  const [success, setSuccess] = useState(null);
-
-  useEffect(() => {
-    const tareasLocalStorage = JSON.parse(localStorage.getItem("tareas"));
-    if (!tareasLocalStorage) return;
-    setTareas(tareasLocalStorage);
-    console.log("primer usefect");
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("tareas", JSON.stringify(tareas));
-    console.log("segundo usefect");
-  }, [tareas]);
-
-  const handleAddTarea = (e) => {
-    e.preventDefault();
-    if (!tarea.trim()) {
-      setError("Escriba algo por favor");
-      return;
-    }
-    const id_task= tareas.length === 0 ? 1 : tareas[tareas.length - 1].id + 1;
-    console.log(id_task);
-
-    setTareas([...tareas, { id: id_task, nombreTarea: tarea }]);
-    setTarea("");
-    setError(null);
-    setSuccess("Tarea agregada con exito");
-  };
-
-  const handleDeleteTarea = (id) => {
-    const arrayFiltrado = tareas.filter((item) => item.id !== id);
-    setTareas(arrayFiltrado);
-  };
-
-  const handleEditTarea = (item) => {
-    setModoEdicion(true);
-    setTarea(item.nombreTarea);
-    setId(item.id);
-  };
-
-  const handleUpdateTarea = (e) => {
-    e.preventDefault();
-    if (!tarea.trim()) {
-      setError("Escriba algo por favor");
-      return;
-    }
-    const arrayEditado = tareas.map((item) =>
-
-      item.id === id ? { id, nombreTarea: tarea } : item
-    );
-    setTareas(arrayEditado);
-    setModoEdicion(false);
-    setTarea("");
-    setId("");
-    setError(null);
-    setSuccess("Tarea actualizada con exito");
-  };
-
-  return (
-    <>
-      <div className="container my-5">
-        <div className="row justify-content-center">
-          <div className="col-12 col-md-6">
-            <h1 className='text-center'>Lista de tareas</h1>
-            <form
-              onSubmit={modoEdicion ? handleUpdateTarea : handleAddTarea}
-              className="form-group"
-            >
-              <input
-                type="text"
-                placeholder="Ingrese tarea"
-                className="form-control mb-2"
-                onChange={(e) => setTarea(e.target.value)}
-                value={tarea}
-              />
-              <input
-                type="submit"
-                value={modoEdicion ? "Editar tarea" : "Agregar tarea"}
-                className="btn btn-dark btn-block"
-              />
-            </form>
-            {error ? <div className="alert alert-danger">{error}</div> : null}
+function ListTask(){
+  const taskContext = useContext(TaskContext);
+  const {tareas,  handleEditTarea,error, success, handleDeleteTarea} = taskContext;
+  return <>
+   {error ? <div className="alert alert-danger">{error}</div> : null}
             {success ? <div className="alert alert-success">{success}</div> : null}
             <ul className="list-group">
               {tareas.length === 0 ? (
@@ -380,18 +296,58 @@ function Tareas() {
                 ))
               )}
             </ul>
+  </>
+}
+function FormTask(){
+  const taskContext = useContext(TaskContext);
+  const { tarea, handleAddTarea, modoEdicion, setTarea,  handleUpdateTarea} = taskContext;
+  return <>
+  <form  className="form-group" onSubmit={modoEdicion ? handleUpdateTarea : handleAddTarea}>
+                <input
+                  type="text"
+                  className="form-control mb-2"
+                  placeholder="Ingrese tarea"
+                  onChange={(e) => setTarea(e.target.value)}
+                  value={tarea}
+                />
+                <button
+                  className={
+                    modoEdicion
+                      ? "btn btn-warning btn-block"
+                      : "btn btn-dark btn-block"
+                  }
+                  type="submit"
+                >
+                  {modoEdicion ? "Editar" : "Agregar"}
+                </button>
+              </form>
+  </>
+}
+
+function Tareas() {
+  return (
+    <>
+      <div className="container my-5">
+        <div className="row justify-content-center">
+          <div className="col-12 col-md-6">
+            <h1 className='text-center'>Lista de tareas</h1>
+          <FormTask/>
+           <ListTask />
           </div>
         </div>
       </div>
     </>
   );
-
-
-
 }
 
 
-
+function ContainerTask(){
+  return <>
+  <TaskState>
+    <Tareas />
+  </TaskState>
+  </>
+}
 
 
 
