@@ -25,6 +25,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path='blog' element={<Blog />} />
         <Route path='contact' element={<Contact />} />
         <Route path='tareas' element={< ContainerTask />} />
+        <Route path='about' element={< About />} />
       </Route>
       {/* <Route path='*'  element={<NoFound/>} /> */}
       <Route path='*' element={<Navigate to="/" replace />} />
@@ -236,7 +237,7 @@ function Layout() {
                 <Link to="/users" className="nav-link toogle-menu" aria-current="page" >Usuarios</Link>
               </li>
               <li className="nav-item">
-                <Link className="nav-link toogle-menu" >Link</Link>
+                <Link to="/about" className="nav-link toogle-menu" >Sobre nosotros</Link>
               </li>
               <li className="nav-item dropdown">
                 <Link className="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -267,60 +268,60 @@ function Layout() {
   </>
 }
 
-function ListTask(){
+function ListTask() {
   const taskContext = useContext(TaskContext);
-  const {tareas,  handleEditTarea,error, success, handleDeleteTarea} = taskContext;
+  const { tareas, handleEditTarea, error, success, handleDeleteTarea } = taskContext;
   return <>
-   {error ? <div className="alert alert-danger">{error}</div> : null}
-            {success ? <div className="alert alert-success">{success}</div> : null}
-            <ul className="list-group">
-              {tareas.length === 0 ? (
-                <li className="list-group-item">No hay tareas</li>
-              ) : (
-                tareas.map((item) => (
-                  <li className="list-group-item" key={item.id}>
-                    <span className="lead">{item.nombreTarea}</span>
-                    <button
-                      className="btn btn-danger btn-sm float-end mx-2"
-                      onClick={() => handleDeleteTarea(item.id)}
-                    >
-                      Eliminar
-                    </button>
-                    <button
-                      className="btn btn-warning btn-sm float-end"
-                      onClick={() => handleEditTarea(item)}
-                    >
-                      Editar
-                    </button>
-                  </li>
-                ))
-              )}
-            </ul>
+    {error ? <div className="alert alert-danger">{error}</div> : null}
+    {success ? <div className="alert alert-success">{success}</div> : null}
+    <ul className="list-group">
+      {tareas.length === 0 ? (
+        <li className="list-group-item">No hay tareas</li>
+      ) : (
+        tareas.map((item) => (
+          <li className="list-group-item" key={item.id}>
+            <span className="lead">{item.nombreTarea}</span>
+            <button
+              className="btn btn-danger btn-sm float-end mx-2"
+              onClick={() => handleDeleteTarea(item.id)}
+            >
+              Eliminar
+            </button>
+            <button
+              className="btn btn-warning btn-sm float-end"
+              onClick={() => handleEditTarea(item)}
+            >
+              Editar
+            </button>
+          </li>
+        ))
+      )}
+    </ul>
   </>
 }
-function FormTask(){
+function FormTask() {
   const taskContext = useContext(TaskContext);
-  const { tarea, handleAddTarea, modoEdicion, setTarea,  handleUpdateTarea} = taskContext;
+  const { tarea, handleAddTarea, modoEdicion, setTarea, handleUpdateTarea } = taskContext;
   return <>
-  <form  className="form-group" onSubmit={modoEdicion ? handleUpdateTarea : handleAddTarea}>
-                <input
-                  type="text"
-                  className="form-control mb-2"
-                  placeholder="Ingrese tarea"
-                  onChange={(e) => setTarea(e.target.value)}
-                  value={tarea}
-                />
-                <button
-                  className={
-                    modoEdicion
-                      ? "btn btn-warning btn-block"
-                      : "btn btn-dark btn-block"
-                  }
-                  type="submit"
-                >
-                  {modoEdicion ? "Editar" : "Agregar"}
-                </button>
-              </form>
+    <form className="form-group" onSubmit={modoEdicion ? handleUpdateTarea : handleAddTarea}>
+      <input
+        type="text"
+        className="form-control mb-2"
+        placeholder="Ingrese tarea"
+        onChange={(e) => setTarea(e.target.value)}
+        value={tarea}
+      />
+      <button
+        className={
+          modoEdicion
+            ? "btn btn-warning btn-block"
+            : "btn btn-dark btn-block"
+        }
+        type="submit"
+      >
+        {modoEdicion ? "Editar" : "Agregar"}
+      </button>
+    </form>
   </>
 }
 
@@ -331,8 +332,8 @@ function Tareas() {
         <div className="row justify-content-center">
           <div className="col-12 col-md-6">
             <h1 className='text-center'>Lista de tareas</h1>
-          <FormTask/>
-           <ListTask />
+            <FormTask />
+            <ListTask />
           </div>
         </div>
       </div>
@@ -341,17 +342,53 @@ function Tareas() {
 }
 
 
-function ContainerTask(){
+function ContainerTask() {
   return <>
-  <TaskState>
-    <Tareas />
-  </TaskState>
+    <TaskState>
+      <Tareas />
+    </TaskState>
   </>
 }
 
 
+const useShow = (initialState = true) => {
+  const [show, setShow] = useState(initialState);
+  const handleShow = () => setShow(true);
+  const handleHide = () => setShow(false);
+  const handleToggle = () => setShow(!show);
+  return [show, handleShow, handleHide, handleToggle];
+}
 
 
+function About() {
+  const [show, handleShow, handleHide, handleToggle] = useShow(true);
+  return <>
+    <div className="container my-5">
+      <div className="row justify-content-center">
+        <div className="col-12 col-md-6">
+          <h1 className='text-center'>Acerca de</h1>
+          <div className="d-flex justify-content-between my-3">
+            <button onClick={handleToggle} className='btn btn-primary'>Toogle show</button>
+            <button onClick={handleShow} className='btn btn-warning'>mostrar</button>
+            <button onClick={handleHide} className='btn btn-danger'>ocultar</button>
+          </div>
+          {
+            show && <div className="card">
+              <div>
+                Mostrar información de la empresa
+              </div>
+              <div>
+                Práctica de custom hooks
+              </div>
+            </div>
+              
+          }
+
+        </div>
+      </div>
+    </div>
+  </>
+}
 
 
 
